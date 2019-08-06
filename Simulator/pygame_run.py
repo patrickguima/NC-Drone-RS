@@ -1,7 +1,7 @@
 import pygame
 from ncDrone import *
 import copy
-def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap_strategy, et,ef):
+def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strategy,evap_strategy, et,ef):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
@@ -72,15 +72,15 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
                     if communication_strategy == True:
                         for k,drone in enumerate(drones):
                             if tick_to_go(tick,k):
-                                grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
-                        if tick %communication_time ==0:       
-                            grid,grids = update_grid(grid,grids)
+                                grid = drone.move(grid = grid,tick = tick)
+                        #if tick %communication_time ==0:       
+                        grid = update_grid(grid,drones)
                     else:
                        for k,drone in enumerate(drones):
                             #print(k)
                             if tick_to_go(tick,k):
                                 grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
-                                print(k,drone.battery)
+                                #print(k,drone.battery)
                                 #print(drones[].x,' ',drones[1].y )
                     
                     tick+=1     
@@ -98,11 +98,11 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
                 
                 for k,drone in enumerate(drones):
                     if tick_to_go(tick,k):
-                         grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
-                if tick %communication_time ==0:       
-                    grid,grids = update_grid(grid,grids) 
+                        grid = drone.move(grid = grid,tick = tick)
+                #if tick %communication_time ==0:       
+                 #   grid,grids = update_grid(grid,grids) 
                 
-
+                #grid = update_grid(grid,drones)
 
             else:
                 for k,drone in enumerate(drones):
@@ -121,7 +121,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
         for row in range(grid_size):
             for column in range(grid_size):
                 color = WHITE
-                text = font.render(str(grid[row][column].visites), True, BLACK)
+                text = font.render(str(grid[row][column].u_value), True, BLACK)
                 if grid[row][column].color == 1:
                     color = GREEN
                 if grid[row][column].color == 2:

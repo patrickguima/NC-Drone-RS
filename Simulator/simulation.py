@@ -29,16 +29,16 @@ def go():
     #NUMERO DE TICKS
     ticks =10000
     #ESTRATEGIAS ADOTADAS
-    simulation_on_screen = True
+    simulation_on_screen = False
     time_strategy =False
     evaporation_strategy = False
     quandrant_strategy = False
 
     #PARAMETROS DE SIMULAÇAO
-    evap_time = 100
-    evap_factor =  0.1
+    evap_time = 0
+    evap_factor =  0
     threshold_time = 0
-    num_simulations = 1
+    num_simulations = 5
     #NUMERO DE VANTs
     number_drones = 4
 
@@ -47,7 +47,7 @@ def go():
 
 
     #OUTRAS ESTRATEGIAS QUE FORAM DESCARTADAS
-    communication_strategy = False
+    communication_strategy = True
     watershed_strategy = False
     type_A = True
     watershed_time = 0
@@ -73,6 +73,9 @@ def go():
     for i in range(num_simulations):
         grid = []
         grids = []
+        grids2 = []
+        #grids3 = []
+
         grid = copy.deepcopy(initial_grid)
 
         grid[40][10].color = 2
@@ -85,6 +88,8 @@ def go():
         if communication_strategy == True:    
             for j in range(number_drones):
                 grids.append(copy.deepcopy(initial_grid))
+                grids2.append(copy.deepcopy(initial_grid))
+               # grids3.append(copy.deepcopy(initial_grid))
             
         drones  = []
         if quandrant_strategy:
@@ -109,15 +114,21 @@ def go():
             drones.append(drone3)
         else:
             for num in range(number_drones):
-                drone  = Drone(x = -1,y = 49,label = None,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+                drone  = Drone(x = -1,y = 49,label = num,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
                 #drone.stations.add(grid[40][10])
                 #drone.stations.add(grid[2][45])
+                drone.grid_aux = grids[num]
+                drone.grid_aux2 = grids2[num]
+                for d in range(number_drones):
+                     drone.grid_aux3.append(copy.deepcopy(initial_grid))
+                #drone.grid_aux3 = grids3[num]
+                #drone.grid_aux4 = grids4[num]
                 drones.append(drone)
 
         
 
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  =run   ,communication_strategy = communication_strategy, evap_strategy = evaporation_strategy, et = evap_time, ef = evap_factor)
+            select_initial_state(drones = drones, grid = grid,grids = grids,grids2 = grids2,ticks = ticks, run  =run   ,communication_strategy = communication_strategy, evap_strategy = evaporation_strategy, et = evap_time, ef = evap_factor)
 
         else:    
             for tick in range(ticks):
@@ -125,27 +136,16 @@ def go():
                 if communication_strategy == True:
                     for k,drone in enumerate(drones):
                         if tick_to_go(tick,k):
-                            grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
-
-                    if tick %communication_time ==0:       
-                        grid,grids = update_grid(grid,grids) 
+                            grid = drone.move(grid = grid,tick = tick)
+                        
+                    #grid = update_grid(grid,drones) 
                 else:
                     for k,drone in enumerate(drones):
                         if tick_to_go(tick,k):
                             grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                    
-                if evaporation_strategy:
-                    if tick%evap_time == 0:
-                        grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
-                
-                if watershed_strategy:   
-                    if tick%watershed_time==0:
-                        if communication_strategy:
-                            for j in range(number_drones):
-                                grids[j] = water.check(grid = grids[i],grid_aux = [],drones = drones[j])
-                        else:
-                            grid = water.check(grid = grid,grid_aux = [],drones = drones)
-
+        
+            #grid = update_grid(grid,drones)
         #size_obstacles(grid)
         soma_manobras = 0      
         for drone in drones:
