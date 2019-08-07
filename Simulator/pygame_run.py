@@ -1,12 +1,13 @@
 import pygame
 from ncDrone import *
 import copy
-def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strategy,evap_strategy, et,ef):
+def select_initial_state(drones,target,grid,grids,grids2,ticks,run,communication_strategy):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
     RED = (255, 0, 0)
     BLUE = (0, 0, 255)
+    PURPLE = (150, 50, 150)
 
     WIDTH =14
     HEIGHT = 14
@@ -73,7 +74,8 @@ def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strate
                         for k,drone in enumerate(drones):
                             if tick_to_go(tick,k):
                                 grid = drone.move(grid = grid,tick = tick)
-                        #if tick %communication_time ==0:       
+                        #if tick %communication_time ==0:    
+                        grid = target.move(grid = grid,tick = tick)   
                         grid = update_grid(grid,drones)
                     else:
                        for k,drone in enumerate(drones):
@@ -97,13 +99,10 @@ def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strate
             if communication_strategy == True:
                 
                 for k,drone in enumerate(drones):
-                    if tick_to_go(tick,k):
+                    if tick_to_go(tick-1,k):
                         grid = drone.move(grid = grid,tick = tick)
-                #if tick %communication_time ==0:       
-                 #   grid,grids = update_grid(grid,grids) 
-                
+                grid = target.move(grid = grid,tick = tick)
                 #grid = update_grid(grid,drones)
-
             else:
                 for k,drone in enumerate(drones):
                     if tick_to_go(tick,k):
@@ -128,6 +127,8 @@ def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strate
                     color = BLUE
                 if grid[row][column].color == 3:
                     color = RED
+                if grid[row][column].color == 4:
+                    color = PURPLE
                 pygame.draw.rect(screen,
                              color,
                              [(MARGIN + WIDTH) * column + MARGIN,
@@ -142,7 +143,7 @@ def select_initial_state(drones,grid,grids,grids2,ticks,run,communication_strate
         #screen.blit(image, (x,y))
         for i in range(len(drones)):
             screen.blit(image, (drones[i].posBoard[0], drones[i].posBoard[1]))
-        #screen.blit(image, (drone2.posBoard[0], drone2.posBoard[1]))
+        screen.blit(image, (target.posBoard[0], target.posBoard[1]))
 
         clock.tick(20)
 

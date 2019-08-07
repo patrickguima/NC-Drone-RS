@@ -29,7 +29,7 @@ def go():
     #NUMERO DE TICKS
     ticks =10000
     #ESTRATEGIAS ADOTADAS
-    simulation_on_screen = False
+    simulation_on_screen = True
     time_strategy =False
     evaporation_strategy = False
     quandrant_strategy = False
@@ -38,7 +38,7 @@ def go():
     evap_time = 0
     evap_factor =  0
     threshold_time = 0
-    num_simulations = 5
+    num_simulations = 2
     #NUMERO DE VANTs
     number_drones = 4
 
@@ -49,10 +49,8 @@ def go():
     #OUTRAS ESTRATEGIAS QUE FORAM DESCARTADAS
     communication_strategy = True
     watershed_strategy = False
-    type_A = True
-    watershed_time = 0
-    communication_time = 0
-    water_threshold =0
+
+
 
    
     #INICIALIZAÇAO
@@ -62,6 +60,7 @@ def go():
     metrics_results = []
     grid_size = 50
     initial_grid = []
+   
 
     for row in range(grid_size):
         initial_grid.append([])
@@ -92,43 +91,33 @@ def go():
                # grids3.append(copy.deepcopy(initial_grid))
             
         drones  = []
-        if quandrant_strategy:
-            if type_A:
-                drone  = Drone(x = -1,y = 49,label = 1,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone1  = Drone(x = -1,y = 49,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone2  = Drone(x = -1,y = 49,label = 3,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone3  = Drone(x = -1,y = 49,label = 4,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                grid = get_path_to_cluster(drone1,grid[20][0],grid)
-                grid  = get_path_to_cluster(drone2,grid[24][49],grid)
-                grid = get_path_to_cluster(drone3,grid[24][49],grid)
-            else:
-                drone  = Drone(x = -1,y = 49,label = 1,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone1  = Drone(x = -1,y = 0,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone2  = Drone(x = 50,y = 0,label = 3,manouvers = 0, direction =(0,0),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                drone3  = Drone(x = 50,y = 49,label = 4,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-            
-            
-            drones.append(drone)
-            drones.append(drone1)
-            drones.append(drone2)
-            drones.append(drone3)
-        else:
-            for num in range(number_drones):
-                drone  = Drone(x = -1,y = 49,label = num,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+        while(1):
+            x = int(random.uniform(0, 49))
+            y = int(random.uniform(0, 49))
+            print(x,y)
+            if valide(drone = None,x = y,y = x,grid=grid,grid_aux = [],label = None):
+                break
+
+        target = Target(x = x,y = y,label = 'target',manouvers = 0, direction =(1,1),mode = 1)
+        grid[target.y][target.x].drone = target
+        grid[target.y][target.x].occupied = True
+
+        for num in range(number_drones):
+            drone  = Drone(x = -1,y = 49,label = num,manouvers = 0, direction =(1,1),communication_strategy = communication_strategy)
                 #drone.stations.add(grid[40][10])
                 #drone.stations.add(grid[2][45])
-                drone.grid_aux = grids[num]
-                drone.grid_aux2 = grids2[num]
-                for d in range(number_drones):
-                     drone.grid_aux3.append(copy.deepcopy(initial_grid))
+            drone.grid_aux = grids[num]
+            drone.grid_aux2 = grids2[num]
+            for d in range(number_drones):
+                drone.grid_aux3.append(copy.deepcopy(initial_grid))
                 #drone.grid_aux3 = grids3[num]
                 #drone.grid_aux4 = grids4[num]
-                drones.append(drone)
+            drones.append(drone)
 
         
 
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid,grids = grids,grids2 = grids2,ticks = ticks, run  =run   ,communication_strategy = communication_strategy, evap_strategy = evaporation_strategy, et = evap_time, ef = evap_factor)
+            select_initial_state(drones = drones, target = target,grid = grid,grids = grids,grids2 = grids2,ticks = ticks, run  =run   ,communication_strategy = communication_strategy)
 
         else:    
             for tick in range(ticks):
@@ -137,7 +126,8 @@ def go():
                     for k,drone in enumerate(drones):
                         if tick_to_go(tick,k):
                             grid = drone.move(grid = grid,tick = tick)
-                        
+
+                    grid = target.move(grid = grid, tick = tick)
                     #grid = update_grid(grid,drones) 
                 else:
                     for k,drone in enumerate(drones):
@@ -150,20 +140,22 @@ def go():
         soma_manobras = 0      
         for drone in drones:
             soma_manobras += drone.manouvers
-        qmi,sdf,ncc =  metrics(grid,ticks)
-        print("qmi: ",qmi)
-        print("sdf: ",sdf)
-        print("ncc: ",ncc)
-        print("manobras",soma_manobras)
-        metrics_results.append([i,qmi,sdf,ncc,soma_manobras])
+        results, target_found =  metrics(drones,target,grid,ticks)
+        print("results: ")
+        for k in range(len(drones)):
+            print(results[k])
+        print("target_found: ",target_found)
+        #print("ncc: ",ncc)
+        ##print("manobras",soma_manobras)
+        #metrics_results.append([i,qmi,sdf,ncc,soma_manobras])
         grid.clear()
         drones.clear()
         if communication_strategy:
             for i in range(number_drones):
                 grids[i].clear()
-        
+                grids2[i].clear()
 
-    write_xlsm(metrics_results)
+   # write_xlsm(metrics_results)
     return
 
 
@@ -178,3 +170,8 @@ if '__main__' == __name__:
     go()
     fim = time.time()
     print('tempo de execução = ',fim - inicio)
+
+
+    #colocar alvos estatico, movel aleatorio e movel direçao contraria
+    #coloacr modelos de energia
+    #colocar parametros de avaliação (tempo de voo, tempo entre recargas, numero de vezes que um alvo foi encontrado e tempo de encontro )
