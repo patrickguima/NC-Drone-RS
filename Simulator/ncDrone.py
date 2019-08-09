@@ -24,14 +24,17 @@ class Drone:
         self.grid_aux = None
         self.grid_aux2 = None
         self.grid_aux3 = []
-        self.hover_expense = 200
-        self.energy_threshold = 500
+        self.hover_expense = 210
+        self.energy_threshold = 700
         self.num_target_found = 0
         self.time_target_found = []
         self.time_between_recharge = []
         self.fly_time = 0
+        self.num_recharges = 0
         self.recharging_time = 0
         self.prev_rechargy = 0
+        self.time_target_found_last = 0
+        self.stop = 0
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -55,13 +58,14 @@ class Drone:
         grid_aux = self.grid_aux
         grid_aux2 = self.grid_aux2
         
-        if self.recharging_time==12:
+        if self.recharging_time==22:
             self.battery =self.max_battery
             self.closest_station = None
             self.recharging = False
             self.recharging_time=0
            # print("aki")
         if self.battery == 0 :
+            self.stop = 1
             return grid
 
         #if self.label ==0:
@@ -71,20 +75,18 @@ class Drone:
             grid[40][10].color = 2
             grid[2][45].color = 2
        
-        #chosen_drone = min(myDrones,key = lambda drone: euclidian_distance(drone.y,drone.x,clus.x,clus.y))
-        
+      
         if self.recharging ==False:
+
             self.check_neighbourhood(grid,grid_aux,tick)
             if len(self.path_water)>0:
-                #for i in self.path_water:
-                 #   grid[i.x][i.y].color = 1
-                #self.getSucessor(grid = grid,grid_aux = [])
+              
                 if self.path_water[-1].occupied== False:
                     path = self.path_water.pop(-1)
                     x = self.y
                     y = self.x
                     if x+1 == path.x and y ==path.y:
-                        path.dir_from_drone = (1,0) #down
+                        path.dir_from_drone = (1,0) #down 
                     if x-1 == path.x and y ==path.y:
                         path.dir_from_drone = (0,1) #up
                     if y+1 == path.y and path.x ==x:
@@ -92,16 +94,13 @@ class Drone:
                     if y-1 == path.y and path.x ==x:
                         path.dir_from_drone = (0,0) #left
                     path.cost = abs((self.direction[0]-path.dir_from_drone[0]) + abs(self.direction[1]-path.dir_from_drone[1]))
-                   # print('cost',path.cost)
-                   #+(path.cost*100)
+                   
                     
                     sucessors = [path]
                 else:
                     sucessors = []
 
             else:
-               
-                #self.check_station(grid)
 
                 if self.communication_strategy:
                     sucessors = self.getSucessor(grid = grid_aux,grid_aux = grid)
@@ -113,13 +112,10 @@ class Drone:
             
             sucessor = random.choice(sucessors)
             sucessor.occupied = True
-           # sucessor.visites+=1
-            sucessor.u_value +=1
-            grid[sucessor.x][sucessor.y].u_value+=1
+            sucessor.u_value +=1 
             grid[sucessor.x][sucessor.y].occupied = True
             self.grid_aux2[sucessor.x][sucessor.y].u_value+=1
-           # print(grid[sucessor.x][sucessor.y].u_value)
-            #self.grid_aux[sucessor.x][sucessor.y].u_value =  self.grid_aux2[sucessor.x][sucessor.y].u_value
+         
             if self.communication_strategy:
                 grid[self.y][self.x].drone = None
                 grid_aux[self.y][self.x].occupied = False
@@ -144,38 +140,44 @@ class Drone:
             #if self.label==0:
              #   print('manouvers',self.manouvers)
               #  print(self.direction)
-
             
-        if self.closest_station !=None:
-        
-            if self.x == self.closest_station.y and self.y == self.closest_station.x and self.battery<self.max_battery:
-                #print('here2')
-                if not self.recharging :
-                    self.time_between_recharge.append(tick - self.prev_rechargy)
-                    self.prev_rechargy = tick
-                self.recharging_time+=1
-                self.recharging =True
-                self.path_water = []
-                #return grid, grid_aux
-        if self.recharging == False:
-            self.fly_time +=1
             self.battery-=self.hover_expense +(sucessor.cost*25)
             if self.stations != []:
                 station = min(self.stations, key = lambda station: euclidian_distance(self.y,self.x,station.x,station.y))
                 if self.battery<=(len_station(self,station,grid)*self.hover_expense) +self.energy_threshold:
-           #  if self.battery <euclidian_distance(self.y,self.x,self.stations[0].x,self.stations[0].y)*150:
                     self.closest_station = station
+                    #print(self.label,"shit")
                     grid_aux = get_path_station(self,station,grid_aux)
-            #print(euclidian_distance(self.y,self.x,self.stations[0].x,self.stations[0].y))
+            
             self.check_neighbourhood(grid,grid_aux,tick)
-            if self.label ==0:
-                print("#############DATA##############")
-                print('manouvers',self.manouvers)
-                print('tick',tick)
-                print('fly_time',self.fly_time)
-                print('charge',self.time_between_recharge)
-                print('battery',self.battery)
-                print('direction',self.direction)
+            
+        if self.closest_station !=None:
+        
+            if self.x == self.closest_station.y and self.y == self.closest_station.x and self.recharging_time<22:
+                #print('here2')
+                if self.recharging == False:
+                    self.time_between_recharge.append(tick - self.prev_rechargy)
+                    self.prev_rechargy = tick
+                    self.num_recharges+=1
+                self.recharging_time+=1
+                self.recharging =True
+                self.path_water = []
+                #return grid, grid_aux
+            else:
+                self.fly_time +=1
+        else:
+            self.fly_time +=1
+            
+        if self.label ==0:
+            print("#############DATA##############")
+            print('manouvers',self.manouvers)
+            print('tick',tick)
+            print('fly_time',self.fly_time)
+            print('charge',self.time_between_recharge)
+            print('battery',self.battery)
+            print('direction',self.direction)
+
+
         return grid
 
     def getSucessor(self,grid,grid_aux):
@@ -196,19 +198,12 @@ class Drone:
             grid[x][y-1].dir_from_drone = (0,0)
             sucessors.append(grid[x][y-1])
 
-        #valide(self,x+1,y+1,grid,grid_aux,label = self.label)
-        #valide(self,x+1,y-1,grid,grid_aux,label = self.label)
-        #valide(self,x-1,y-1,grid,grid_aux,label = self.label)
-        #valide(self,x-1,y+1,grid,grid_aux,label = self.label)   
-
 
 
 
         if len(sucessors)==0:
             return []
-        #for suc in sucessors:
-          #  if suc.color == 2 and suc not in self.stations:
-           #     self.stations.append(suc)
+
 
         minimum_uvalue = min(sucessors,key = lambda x: x.u_value).u_value
         new_sucessors = list(filter(lambda x : x.u_value <= minimum_uvalue,sucessors))
@@ -300,11 +295,14 @@ def exchange_information(drone1, drone2,grid,tick):
     #print(drone2.label)
     grid_size = 50
     if drone2.label == 'target':
-        drone2.found = True
-        print("HERE",tick)
-        drone2.num_found+=1
-        drone1.num_target_found+=1
-        drone1.time_target_found.append(tick)
+      #  print("HERE",tick)
+        if drone2.found == False:
+            drone2.found = True
+            drone2.num_found+=1
+
+            drone1.num_target_found+=1
+            drone1.time_target_found.append(tick - drone1.time_target_found_last)
+            drone1.time_target_found_last = tick
         return
 
     for station in drone1.stations:
@@ -468,8 +466,8 @@ def metrics(drones,target,grid,tick):
 #    print("### MATRICS ###")
     results  = []
     for i in range(len(drones)):
-        results.append([i,drones[i].num_target_found,statistics.mean(drones[i].time_target_found)])
-    return results,target.num_found
+        results.append([i,drones[i].num_target_found,statistics.mean(drones[i].time_target_found),drones[i].num_recharges,statistics.mean(drones[i].time_between_recharge),drones[i].stop])
+    return results,target.num_found,ncc(grid)
 
 def simulation(drone,grid,tick):
     drone.move(grid,tick)
@@ -490,9 +488,9 @@ def update_grid(grid,drones):
     grid4 = drones[3].grid_aux2
     for i in range(grid_size):
         for j in range(grid_size):
-            grid[i][j].u_value = drones[0].grid_aux[i][j].u_value #+ drones[1].grid_aux2[i][j].u_value +  drones[2].grid_aux2[i][j].u_value +drones[3].grid_aux2[i][j].u_value
-            if grid[i][j].u_value >0:
-                grid[i][j].color = 1
+            grid[i][j].u_value = drones[0].grid_aux2[i][j].u_value + drones[1].grid_aux2[i][j].u_value +  drones[2].grid_aux2[i][j].u_value +drones[3].grid_aux2[i][j].u_value
+            #if grid[i][j].u_value >0:
+             #   grid[i][j].color = 1
             #print(grid[i][j].visites)
   
     grid[40][10].color = 2
@@ -553,6 +551,9 @@ class Target:
         self.found = False
         self.num_found = 0
         self.mode = mode
+        self.drones_directions = []
+        self.time_change_direction = 0
+        self.time_change_direction_total = 30
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -579,7 +580,7 @@ class Target:
 
                 x = int(random.uniform(0, 49))
                 y = int(random.uniform(0, 49))
-                print(x,y)
+                #print(x,y)
                 if valide(drone = None,x = y,y = x,grid=grid,grid_aux = [],label = self.label):
                     grid[self.y][self.x].occupied = False
                     grid[self.y][self.x].drone = None
@@ -591,15 +592,16 @@ class Target:
                     return grid
 
         if(self.y != -1 and self.x!= -1 and self.x<50):
-            grid[self.y][self.x].color=4
+            #grid[self.y][self.x].color=4
             grid[40][10].color = 2
             grid[2][45].color = 2
        
             
         if self.mode ==0:
+           # self.check_neighbourhood(grid,[])
             return grid
-        if self.mode == 2:
-            self.check_neighbourhood(grid,[])
+        #if self.mode == 2:
+         #   self.check_neighbourhood(grid,[])
 
         sucessors = self.getSucessor(grid = grid,grid_aux = [])
         if len(sucessors)==0:
@@ -608,8 +610,9 @@ class Target:
             
         sucessor = random.choice(sucessors)
         sucessor.occupied = True
-       
+        sucessor.u_value+=1
         grid[self.y][self.x].drone = None
+        grid[self.y][self.x].drone = 0
         if self.x<50:
             grid[self.y][self.x].occupied = False
 
@@ -618,14 +621,24 @@ class Target:
         self.x = sucessor.y
         self.y = sucessor.x
         grid[self.y][self.x].drone = self
+        grid[self.y][self.x].color = 4
         grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
         grid[self.y][self.x].visita_anterior = tick
         self.posBoard = [(self.x*19) +5,(self.y*19) +5] 
         #decrase_uvalue(grid,self.feromone_value)
         #print('#######TARGET######')
         #print(self.num_found)
+        #print(self.mode)
         if self.mode == 2:
             self.check_neighbourhood(grid,[])
+            if self.drones_directions== []:
+                if self.time_change_direction >= self.time_change_direction_total:
+                    #print("here",self.time_change_direction_total)
+                    self.time_change_direction_total = int(random.uniform(30, 50))
+                    self.time_change_direction = 0
+                    self.direction = random.choice([(0,0),(0,1),(1,0),(1,1)])
+            
+
         return grid
 
     def getSucessor(self,grid,grid_aux):
@@ -651,8 +664,8 @@ class Target:
 
         if self.mode==1:
             return sucessors
-        #minimum_uvalue = min(sucessors,key = lambda x: x.u_value).u_value
-        #new_sucessors = list(filter(lambda x : x.u_value <= minimum_uvalue,sucessors))
+        minimum_uvalue = min(sucessors,key = lambda x: x.u_value).u_value
+        new_sucessors = list(filter(lambda x : x.u_value <= minimum_uvalue,sucessors))
         for suc in sucessors:
             suc.cost = abs(self.direction[0]-suc.dir_from_drone[0]) + abs(self.direction[1]-suc.dir_from_drone[1])
 
@@ -665,43 +678,74 @@ class Target:
     def check_neighbourhood(self,grid,grid_aux):
         x = self.y
         y = self.x
+
+
+                        #path.dir_from_drone = (1,0) #down 
+                  
+                    #    path.dir_from_drone = (0,1) #up
+                    
+                    #    path.dir_from_drone = (1,1) #right
+                    
+                    #    path.dir_from_drone = (0,0) #left
     
-        for i in range(1,5):
+        for i in range(1,6):
             if  valide2(self,x+i,y,grid,grid_aux,label = self.label):
-                if grid[x+i][y].drone!=None:
-                    self.change_direction()
+                #grid[x+i][y].color=4
+                if grid[x+i][y].drone!=None:#down
+                    self.drones_directions.append((1,0))
 
             if valide2(self,x-i,y,grid,grid_aux,label = self.label):
-                if grid[x-i][y].drone!=None:
-                    self.change_direction()
+               # grid[x-i][y].color = 4
+                if grid[x-i][y].drone!=None:#UP
+                    self.drones_directions.append((0,1))
 
             if valide2(self,x,y+i,grid,grid_aux,label = self.label):
-                if grid[x][y+i].drone!=None:
-                    self.change_direction()
+               # grid[x][y+i].color = 4
+                if grid[x][y+i].drone!=None: #right
+                    self.drones_directions.append((1,1))
 
             if valide2(self,x,y-i,grid,grid_aux,label = self.label):
-                if grid[x][y-i].drone!=None:
-                    self.change_direction()
+                
+                if grid[x][y-i].drone!=None: #left
+                    self.drones_directions.append((0,0))
 
-            for j in range(1,5):      
+            for j in range(1,6):      
                 if valide2(self,x+j,y+i,grid,grid_aux,label = self.label):
-                    if grid[x+j][y+i].drone!=None:
-                        self.change_direction()
+                   
+                    if grid[x+j][y+i].drone!=None: #down-right
+                        self.drones_directions.append((1,0))
+                        self.drones_directions.append((1,1))
 
                 if valide2(self,x+j,y-i,grid,grid_aux,label = self.label):
-                    if grid[x+j][y-i].drone!=None:
-                        cself.change_direction()
+                    if grid[x+j][y-i].drone!=None: #down-left
+                        self.drones_directions.append((1,0))
+                        self.drones_directions.append((0,0))
 
                 if valide2(self,x-j,y-i,grid,grid_aux,label = self.label):
-                    if grid[x-j][y-i].drone!=None:
-                        self.change_direction()
+                    if grid[x-j][y-i].drone!=None: #up-left
+                        self.drones_directions.append((0,1))
+                        self.drones_directions.append((0,0))
 
-                if valide2(self,x-j,y+i,grid,grid_aux,label = self.label):  
-                    if grid[x-j][y+i].drone!=None:
-                        self.change_direction()
-
+                if valide2(self,x-j,y+i,grid,grid_aux,label = self.label): 
+                    #grid[x-j][y+i].color = 4
+                    if grid[x-j][y+i].drone!=None:#up-right
+                        self.drones_directions.append((0,1))
+                        self.drones_directions.append((1,1))
+        if self.drones_directions !=[]:
+            self.time_change_direction =0
+            self.change_direction()
+        else:
+            #print("aki porra")
+            self.time_change_direction+=1
+            #print(self.time_change_direction)
         return
     def change_direction(self):
-        self.direction = (abs(self.direction[0] - 1),abs(self.direction[1] - 1))
+       # print(self.drones_directions)
         
+        directions = [(0,0),(1,1),(1,0),(0,1)]
+        new_direction = list(filter(lambda x : x not in self.drones_directions,directions))
+        if new_direction != []:
+            if self.direction not in new_direction:
+                self.direction = random.choice(new_direction)
+        self.drones_directions.clear()
         return
