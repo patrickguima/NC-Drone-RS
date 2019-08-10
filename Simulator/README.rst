@@ -43,6 +43,7 @@ Quick start
 `````````````````````````
 
 .. code-block:: python
+
     # 0 - fixed
     # 1 - random
     # 2 - inteligent
@@ -54,6 +55,7 @@ Quick start
 ```````````````````````````
 
 .. code-block:: python
+
     num_simulations = 30 #number of simulations 
 
 5. Running or step by step
