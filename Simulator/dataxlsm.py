@@ -1,64 +1,46 @@
 
 import xlsxwriter
 import statistics
-def write_xlsm(metrics):
+def write_xlsm(metrics,target_results):
 
 
-    workbook = xlsxwriter.Workbook('resultadosNCDrone.xlsx')
+    workbook = xlsxwriter.Workbook('results.xlsx')
     worksheet = workbook.add_worksheet()
 
 # Some data we want to write to the worksheet.
     expenses = (
-        ['Num', 'Qmi', 'Sdf', 'Ncc','Manobras'],
+        ['Num', 'num_target_founds', 'interval_found', 'num_recharges','interval_recharges','manouvers','target_was_found','interval_found'],
 
     )
-  #  labels = (['Media Qmi','DP','Media SDF','DP','Media Manobras','DP'])
-    QMI = []
-    SDF = []
-    MANOBRAS = []
-# Start from the first cell. Rows and columns are zero indexed.
     row = 0
     col = 0
-
 # Iterate over the data and write it out row by row.
-    for num, qmi,sdf,ncc,ntm in (expenses):
+    for num, qmi,sdf,ncc,ntm,mano,targ,ti in (expenses):
         worksheet.write(row, col,     num)
         worksheet.write(row, col + 1, qmi)
         worksheet.write(row, col + 2, sdf)
         worksheet.write(row, col + 3, ncc)
         worksheet.write(row, col + 4, ntm)
+        worksheet.write(row, col + 5, mano)
+        worksheet.write(row, col + 6, targ)
+        worksheet.write(row, col + 7, ti)
         row += 1
+    for met in metrics:
+        for num, qmi,sdf,ncc,ntm,mano in met:  
+            worksheet.write(row, col,     num)
+            worksheet.write(row, col + 1, qmi)
+            worksheet.write(row, col + 2, sdf)
+            worksheet.write(row, col + 3, ncc)
+            worksheet.write(row, col + 4, ntm)
+            worksheet.write(row, col + 5, mano)
+            row += 1
 
-    for num, qmi,sdf,ncc,ntm in metrics:
-        QMI.append(qmi)
-        SDF.append(sdf)
-        MANOBRAS.append(ntm)
-        worksheet.write(row, col,     num)
-        worksheet.write(row, col + 1, qmi)
-        worksheet.write(row, col + 2, sdf)
-        worksheet.write(row, col + 3, ncc)
-        worksheet.write(row, col + 4, ntm)
-        row += 1
-    col = 6
-    row = 0
-   
-    worksheet.write(row, col,     "Media Qmi")
-    worksheet.write(row, col + 1, "DP")
-    worksheet.write(row, col + 2, "Media SDF")
-    worksheet.write(row, col + 3, "DP")
-    worksheet.write(row, col + 4, "Media Manobras")
-    worksheet.write(row, col + 5, "DP")
-    row += 1
-
-
-
-    worksheet.write(row, col,     statistics.mean(QMI))
-    worksheet.write(row, col + 1, statistics.stdev(QMI))
-    worksheet.write(row, col + 2, statistics.mean(SDF))
-    worksheet.write(row, col + 3, statistics.stdev(SDF))
-    worksheet.write(row, col + 4, statistics.mean(MANOBRAS))
-    worksheet.write(row, col + 5, statistics.stdev(MANOBRAS))
-
+    row = 1
+    for target in target_results:
+        for tag,inter in target:
+            worksheet.write(row, col+6,tag)
+            worksheet.write(row, col+7,inter)
+            row += 4
 
     workbook.close()
 
