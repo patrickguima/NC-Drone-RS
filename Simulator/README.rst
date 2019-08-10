@@ -39,14 +39,15 @@ Quick start
     simulation_on_screen = True
 
 
-3. Selecting strategys
+3. Selecting target mode
 ````````````````````
 
 .. code-block:: python
+    # 0 - fixed
+    # 1 - random
+    # 2 - inteligent
+    target_mode = 0
     
-    time_strategy = False
-    evaporation_strategy = True
-    quandrant_strategy = False
 
 
 4. Simulations parameters
@@ -67,11 +68,3 @@ Quick start
     run = True #True to run and False to run step by step using the right arrow
 
 
-6. No fly zones scenarios
-``````````````````````````````````````````````````````
-.. code-block:: python
-
-    #Just uncoment the lines below to add the obstacles
-    #make_obstacles1(grid)
-    #make_obstacles2(grid)
-    #make_obstacles3(grid)
