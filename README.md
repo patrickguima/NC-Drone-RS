@@ -12,6 +12,6 @@ The primary goal of the NC-Drone is to reduce excessive NTM while keeping unpred
 
 
 ## Simulation Scenario
-<img src="Images/scenario.png" width="500" height="500">
+<img src="images/scenario.png" width="500" height="500">
 
 
