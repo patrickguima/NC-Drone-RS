@@ -40,7 +40,7 @@ Quick start
 
 
 3. Selecting target mode
-````````````````````
+`````````````````````````
 
 .. code-block:: python
     # 0 - fixed
@@ -54,10 +54,6 @@ Quick start
 ```````````````````````````
 
 .. code-block:: python
-
-    evap_time = 1
-    evap_factor =  0.83
-    threshold_time = 0
     num_simulations = 30 #number of simulations 
 
 5. Running or step by step
