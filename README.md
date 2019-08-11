@@ -1,4 +1,4 @@
-# patrolling algorithm
+# Patrolling Strategy for Multiple UAVswith Recharging Stations in Unknown Environments
 
 
 The test platform was built using the PyGame library. The scenario is a 50×50 grid containing four UAVs modeled as robot-agents  and two stationary recharging stations (blue points). The aerial robots can navigate through the scenario, detect the recharging stations,  and  interact with each other when they are within the communication range. The starting position of the UAVs is at the lower-left corner of the area.  
