@@ -9,7 +9,7 @@ def write_xlsm(metrics,target_results):
 
 # Some data we want to write to the worksheet.
     expenses = (
-        ['Num', 'num_target_founds', 'interval_found', 'num_recharges','interval_recharges','manouvers','target_was_found','interval_found'],
+        ['Drone', 'num_target_founds', 'interval_found', 'num_recharges','interval_recharges','manouvers','target_was_found','interval_found'],
 
     )
     row = 0
